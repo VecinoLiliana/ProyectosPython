@@ -11,6 +11,8 @@ class Personaje:
         self.inteligencia = inteligencia
         self.defensa = defensa
         self.vida = vida
+        #Inventario vacío
+        self.inventario = {'vida': 0, 'fuerza': 0, 'inteligencia': 0}
 
     def imprimir_atributos(self):
         print(self.nombre)
@@ -36,16 +38,55 @@ class Personaje:
     
     def atacar (self, enemigo):
         daño = self.dañar(enemigo)
-        enemigo.vida = max(0,enemigo.vida - daño)
+        if hasattr(enemigo,"escudo") and enemigo.escudo > 0:
+            if daño < enemigo.vida_escudo:
+                enemigo.vida_escudo -= daño
+            elif daño >= enemigo.vida_escudo:
+                enemigo.vida = max(0,enemigo.vida - daño + enemigo.vida_escudo)
+                enemigo.escudo = 0
+                enemigo.vida_escudo = 0
+        else:
+            enemigo.vida = max(0,enemigo.vida - daño)
         print (self.nombre, "ha realizado", daño, "puntos de daño a", enemigo.nombre)
         print ("Vida de", enemigo.nombre, "es", enemigo.vida)
+
+    def agregar_pocima(self, pocima, cantidad):
+        if pocima in self.inventario:
+            self.inventario[pocima] += cantidad
+            print(f"Se agregó {pocima} pociones de {pocima}. Inventario: {self.inventario}")
+        else:
+            print(f"Pócima no existente: {pocima}")
+
+    def usar_pocima(self, pocima):
+        if pocima in self.inventario and self.inventario[pocima] > 0:
+            self.inventario[pocima] -= 1  
+
+            if pocima == "Vida":
+                puntos_curados = 20  
+                self.vida += puntos_curados
+                print(f"{self.nombre} ha usado una pócima de vida. +{puntos_curados} HP. Vida actual: {self.vida}")
+
+            elif pocima == "Fuerza":
+                incremento = self.fuerza * 0.5
+                self.fuerza += incremento
+                print(f"{self.nombre} ha usado una pócima de fuerza. Fuerza aumentada en un 50%. Fuerza actual: {self.fuerza:.2f}")
+
+            elif pocima == "Inteligencia":
+                incremento = self.inteligencia * 0.5
+                self.inteligencia += incremento
+                print(f"{self.nombre} ha usado una pócima de inteligencia. Inteligencia aumentada en un 50%. Inteligencia actual: {self.inteligencia:.2f}")
+
+        else:
+            print(f"{self.nombre} no tiene pociones de {pocima} disponibles.")
 
 class Guerrero(Personaje):
     
     #Sobreescribir el constructor
-    def __init__(self, nombre, fuerza, inteligencia, defensa, vida, espada):
+    def __init__(self, nombre, fuerza, inteligencia, defensa, vida, espada,escudo):
         super().__init__(nombre, fuerza, inteligencia, defensa, vida)
         self.espada = espada
+        self.escudo = escudo
+        self.vida_escudo = defensa * escudo
 
     #Sobreescribir impresión de datos
     def imprimir_atributos(self):
@@ -99,7 +140,7 @@ class Mago(Personaje):
 
 #crear todo los objetos
 persona = Personaje("Angel Suárez", 20,15,10,100)
-arturoSuarez = Guerrero( "Arturo Suárez", 20, 15, 10, 100,5)
+arturoSuarez = Guerrero( "Arturo Suárez", 20, 15, 10, 100,5,2)
 gandalf = Mago("Gandalf",20, 15, 10, 100, 5)
 
 #atributos antes de la tragedia
@@ -116,6 +157,11 @@ gandalf.atacar(persona)
 persona.imprimir_atributos()
 arturoSuarez.imprimir_atributos()
 gandalf.imprimir_atributos()
+
+#Uso de posima
+persona.usar_pocima("Vida")
+arturoSuarez.usar_pocima("Fuerza")
+gandalf.usar_pocima("Inteligencia")
 
 
 #arturoSuarez.escoger_navaja()
